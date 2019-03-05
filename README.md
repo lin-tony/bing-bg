@@ -1,5 +1,5 @@
 # bing-bg
-每日获取bing背景图片并设置为壁纸
+获取每日bing背景图片并设置为壁纸
 
 # 技术要点：
 使用Windows API
