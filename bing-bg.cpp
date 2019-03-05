@@ -34,7 +34,6 @@ bool downloadToFile(std::string url, std::string local) {
 	return flag;
 }//"https:\\\\cn.bing.com\\sa\\simg\\hpb\\NorthMale_EN-US8782628354_1920x1080.jpg"
 
-
 //通过接口获取今日图片的url，xml的解析借助了开源库tinyxml2
 std::string getPicTureXmlAndUrl(std::string path) {
 	std::string url = "http://cn.bing.com/HPImageArchive.aspx?format=xml&idx=0&n=1";
