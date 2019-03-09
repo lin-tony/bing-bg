@@ -12,9 +12,9 @@
 //改背景图
 bool changeBgPicture(std::string s) {
 	return SystemParametersInfoA(
-		SPI_SETDESKWALLPAPER, 
-		0, 
-		(PVOID)s.c_str(), 
+		SPI_SETDESKWALLPAPER,
+		0,
+		(PVOID)s.c_str(),
 		1);
 }
 
@@ -29,7 +29,7 @@ bool downloadToFile(std::string url, std::string local) {
 	if (flag == S_OK) {
 		std::cout << "成功下载文件在 " << local << std::endl;
 	} else {
-		std::cout << "下载文件到 " << local <<" 失败" << std::endl;
+		std::cout << "下载文件到 " << local << " 失败" << std::endl;
 	}
 	return flag;
 }//"https:\\\\cn.bing.com\\sa\\simg\\hpb\\NorthMale_EN-US8782628354_1920x1080.jpg"
@@ -86,11 +86,18 @@ void mkdirIfNotExist(std::string path) {
 	}
 }
 
+//有的时候解析到的图片url里不是1920x1080，故替换
+void changeTo1920x1080(std::string &str) {
+	std::regex pattern("_(\\d+)x(\\d+).jpg");
+	str = std::regex_replace(str, pattern, "_1920x1080.jpg");
+}
+
 int main() {
 	std::string path = "E:\\bing-bg-pictures";
 	std::string localUrl = path + "\\" + getYearMonthDay() + ".jpg";
 	mkdirIfNotExist(path);
 	std::string url = getPicTureXmlAndUrl(path);
+	changeTo1920x1080(url);
 	downloadToFile(url, localUrl);
 	if (changeBgPicture(localUrl)) {
 		std::cout << "\n更换壁纸成功" << std::endl;
