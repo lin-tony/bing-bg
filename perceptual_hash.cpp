@@ -44,26 +44,36 @@ void GetDirImages(const string path, std::vector<MatStruct> &images) {
 		if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0)) {
 			continue;
 		}
+		
 		string fullname = path + "/" + ptr->d_name;
-		Mat img = imread(fullname);
+		Mat img = imread(fullname, 0);//参数2设为0，打开为灰度图
 		if (img.empty()) {
 			continue;
 		}
 		MatStruct ms;
 		ms.name = ptr->d_name;
 		Mat gray, res;
-		//缩放成NxN大小
-		resize(img, res, Size(N, N));
-		//核心！转化成灰度图
-		cvtColor(res, gray, CV_RGB2GRAY);
-		//获取灰度平均值
-		double mn = mean(gray)[0];
-		//比较像素灰度，获取图像指纹
-		for (int i = 0; i < N; i++) {
-			for (int j = 0; j < N; j++) {
-				ms.buf[i * N + j] = (gray.at<unsigned char>(i, j) > mn) ? 1 : 0;
-			}
-		}
+		//缩放成32x32大小
+		resize(img, res, Size(32, 32));
+		//dct必须先转换成CV_32F
+		res.convertTo(res, CV_32F);
+
+		Mat srcDCT;
+		//核心！离散余弦变换
+		dct(res, srcDCT);
+		srcDCT = abs(srcDCT);
+
+		//取左上角的N*N
+		double sum = 0;
+		for (int i = 0; i < N; i++)
+			for (int j = 0; j < N; j++)
+				sum += srcDCT.at<float>(i, j);
+
+		double average = sum / (N*N);
+		for (int i = 0; i < N; i++)
+			for (int j = 0; j < N; j++)
+				ms.buf[i * N + j] = srcDCT.at<float>(i, j) > average ? 1 : 0;
+
 		cout << "get " << fullname << endl;
 		tmpimages.push_back(ms);
 	}
@@ -71,6 +81,7 @@ void GetDirImages(const string path, std::vector<MatStruct> &images) {
 	std::sort(tmpimages.begin(), tmpimages.end());
 	tmpimages.swap(images);
 }
+
 
 //删除图像
 void DeleteImage(const string path, std::vector<std::vector<MatStruct>::iterator> &delImages, std::vector<MatStruct> &images) {
@@ -93,7 +104,7 @@ bool IsTheSame(std::vector<MatStruct>::iterator x, std::vector<MatStruct>::itera
 				diff++;
 			}
 		}
-		return diff <= 5;
+		return diff <= 3;
 	}
 	return false;
 }
@@ -119,7 +130,9 @@ void CompareImage(const string path, std::vector<MatStruct> &images) {
 	}
 }
 
-void AverageHash(const string path) {
+
+
+void PerceptualHash(const string path) {
 	std::vector<MatStruct> images;
 	GetDirImages(path, images);
 	CompareImage(path, images);
@@ -137,6 +150,6 @@ int main(int argc, char* argv[]) {
 		cout << "Error! " << argv[1] << " is not dir" << endl;
 		return -1;
 	}
-	AverageHash(argv[1]);
+	PerceptualHash(argv[1]);
 	return 0;
 }
